@@ -85,6 +85,9 @@ double slope_lim(double y1,double y2,double y3)
 		else if(fabs(Dqm) < fabs(Dqp)) return Dqm ;
 		else return Dqp ;
 	}
+	else if(lim == DONOR) {
+      return(0.0);
+	}
 
 	fprintf(stderr,"unknown slope limiter\n") ;
 	exit(10) ;

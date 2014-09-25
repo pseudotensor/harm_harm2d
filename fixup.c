@@ -52,56 +52,12 @@ void fixup(double (* pv)[N2+4][NPR])
 {
   int i,j ;
 
-  ZLOOP {
-    fixup1zone( i, j, pv[i][j] );
-  }
+  return;
 
 }
 
 void fixup1zone( int i, int j, double pv[NPR] ) 
 {
-  double r,th,X[NDIM],uuscal,rhoscal, rhoflr,uuflr ;
-  double f,gamma ;
-  struct of_geom geom ;
-
-  coord(i,j,CENT,X) ;
-  bl_coord(X,&r,&th) ;
-
-  rhoscal = pow(r,-1.5) ;
-  //rhoscal = pow(r,-2) ;
-  uuscal = rhoscal/r ;
-
-  rhoflr = RHOMIN*rhoscal;
-  uuflr  = UUMIN*uuscal;
-
-  if( rhoflr < RHOMINLIMIT ) rhoflr = RHOMINLIMIT;
-  if( uuflr  < UUMINLIMIT  ) uuflr  = UUMINLIMIT;
-
-  /* floor on density and internal energy density (momentum *not* conserved) */
-  if(pv[RHO] < rhoflr )   pv[RHO] = rhoflr; 
-  if(pv[UU]  < uuflr  )   pv[UU]  = uuflr;
-
-
-  /* limit gamma wrt normal observer */
-  get_geometry(i,j,CENT,&geom) ;
-
-  if( gamma_calc(pv,&geom,&gamma) ) { 
-    /* Treat gamma failure here as "fixable" for fixup_utoprim() */
-    pflag[i][j] = -333;
-    failimage[3][i+j*N1]++ ;
-  }
-  else { 
-    if(gamma > GAMMAMAX) {
-      f = sqrt(
-	       (GAMMAMAX*GAMMAMAX - 1.)/
-	       (gamma*gamma - 1.)
-	       ) ;
-      pv[U1] *= f ;	
-      pv[U2] *= f ;	
-      pv[U3] *= f ;	
-    }
-  }
-
   return;
 }
 
@@ -162,6 +118,9 @@ void fixup_utoprim( double (*pv)[N2 + 4][NPR] )
   /* Fix the interior points first */
   ZSLOOP(0,(N1-1),0,(N2-1)) { 
     if( pflag[i][j] == 0 ) { 
+      
+      fprintf(stderr,"Fail: i=%d\n",i);
+
       pf[1] = pflag[i-1][j+1];   pf[2] = pflag[i][j+1];  pf[3] = pflag[i+1][j+1];
       pf[8] = pflag[i-1][j  ];                           pf[4] = pflag[i+1][j  ];
       pf[7] = pflag[i-1][j-1];   pf[6] = pflag[i][j-1];  pf[5] = pflag[i+1][j-1];

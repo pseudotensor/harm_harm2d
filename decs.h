@@ -52,8 +52,8 @@
 *************************************************************************/
 /** here are the few things that we change frequently **/
 
-#define N1       (256)        /* number of physical zones in X1-direction */
-#define N2       (256)        /* number of physical zones in X2-direction */
+#define N1       (40)        /* number of physical zones in X1-direction */
+#define N2       (1)        /* number of physical zones in X2-direction */
 
 #define NPR        (8)        /* number of primitive variables */
 #define NDIM       (4)        /* number of total dimensions.  Never changes */
@@ -70,26 +70,26 @@
 #define RESCALE     (0)
 
 /** FIXUP PARAMETERS, magnitudes of rho and u, respectively, in the floor : **/
-#define RHOMIN	(1.e-4)
-#define UUMIN	(1.e-6)
-#define RHOMINLIMIT (1.e-20)
-#define UUMINLIMIT  (1.e-20)
+#define RHOMIN	(-1E30)
+#define UUMIN	(-1E30)
+#define RHOMINLIMIT (-1E30)
+#define UUMINLIMIT  (-1E30)
 
 
 /* A numerical convenience to represent a small non-zero quantity compared to unity:*/
 #define SMALL	(1.e-20)
 
 /* Max. value of gamma, the lorentz factor */
-#define GAMMAMAX (50.)
+#define GAMMAMAX (500.)
 
 /* maximum fractional increase in timestep per timestep */
 #define SAFE	(1.3)
 
 
-#define COORDSINGFIX 1
+#define COORDSINGFIX 0
 // whether to move polar axis to a bit larger theta
 // theta value where singularity is displaced to
-#define SINGSMALL (1.E-20)
+#define SINGSMALL (1.E-50)
 
 
 /* I/O format strings used herein : */
@@ -130,6 +130,7 @@
 #define CENT	(3)
 
 /* mnemonics for slope limiter */
+#define DONOR (-1)
 #define MC	(0)
 #define VANL	(1)
 #define MINM	(2)

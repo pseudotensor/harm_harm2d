@@ -78,12 +78,16 @@ void   flux_cd(double F1[][N2+4][NPR], double F2[][N2+4][NPR]) ;
      -- also sets the dynamically changing time step size;
 
 ***********************************************************************************************/
+
+int steppart;
+
 void step_ch()
 {
 	double ndt ;
 	int i,j,k ;
 
 	fprintf(stderr,"h") ;
+    steppart=0;
 	ndt = advance(p, p, 0.5*dt, ph) ;   /* time step primitive variables to the half step */
 
 	fixup(ph) ;         /* Set updated densities to floor, set limit for gamma */
@@ -94,6 +98,7 @@ void step_ch()
 	/* Repeat and rinse for the full time (aka corrector) step:  */
 	fprintf(stderr,"f") ;
 	ZLOOP PLOOP psave[i][j][k] = p[i][j][k] ;
+    steppart=1;
 	ndt = advance(p, ph, dt,    p) ;
 
 	fixup(p) ;
@@ -154,6 +159,7 @@ double advance(
 
   flux_ct(F1,F2) ;
 
+
   /* evaluate diagnostics based on fluxes */
   diag_flux(F1,F2) ;
 
@@ -161,6 +167,7 @@ double advance(
   /** now update pi to pf **/
   ZLOOP {
 
+    
     get_geometry(i,j,CENT,&geom) ;
 
     source(pb[i][j],&geom,i,j,dU,Dt) ;
@@ -175,6 +182,13 @@ double advance(
 		  + dU[k]
 		  ) ;
     }
+
+    if(i>N1/2-4 && i<N1/2+4){
+      fprintf(stderr,                 "i=%d j=%d k=%d step=%d steppart=%d\n",i,j,k,nstep,steppart);
+      PLOOP fprintf(stderr,"          pl=%d F1=%21.15g F2=%21.15g : P=%g\n",k,F1[i][j][k],F2[i][j][k],pb[i][j][k]);
+        }
+
+
 
     pflag[i][j] = Utoprim_2d(U, geom.gcov, geom.gcon, geom.g, pf[i][j]);
     if( pflag[i][j] ) failimage[0][i+j*N1]++ ;
@@ -238,8 +252,7 @@ double fluxcalc(
 #endif
 	/* then evaluate slopes */
 	ZSLOOP(-1,N1,-1,N2) PLOOP {
-   	        //-new get_geometry(i,j,CENT,&geom) ;
-		//-new bsq = bsq_calc(pr[i][j],&geom) ;
+   	        //-new get_geometc(pr[i][j],&geom) ;
 		//-new if(bsq/pr[i][j][RHO] > 10. ||
 		//-new    bsq/pr[i][j][UU]  > 1.e3) lim = MINM ;
 		//-new else lim = MC ;
@@ -255,9 +268,11 @@ double fluxcalc(
         ZSLOOP(-jdel,N1,-idel,N2) {
 
                 /* this avoids problems on the pole */
-                if(dir == 2 && (j == 0 || j == N2)) {
-                        PLOOP F[i][j][k] = 0. ;
-                }
+                //if(dir == 2 && (j == 0 || j == N2)) {
+                //        PLOOP F[i][j][k] = 0. ;
+          // }
+          if(0){
+          }
 		else {
 
                 PLOOP {
@@ -301,6 +316,9 @@ double fluxcalc(
 				- ctop*(U_r[k] - U_l[k])) 
 			) ;
 
+        if(i>N1/2-4 && i<N1/2+4){
+          PLOOP fprintf(stderr,"i=%d pl=%d p_l=%g p_r=%g F_l=%g F_r=%g U_l=%g U_r=%g ctop=%g F=%g\n",i,k,p_l[k],p_r[k],F_l[k],F_r[k],U_l[k],U_r[k],ctop,F[i][j][k]);
+        }
                 /* evaluate restriction on timestep */
                 cmax = MY_MAX(cmax,cmin) ;
                 dtij = cour*dx[dir]/cmax ;
@@ -335,13 +353,21 @@ void flux_ct(double F1[][N2+4][NPR], double F2[][N2+4][NPR])
 
 	/* calculate EMFs */
 	/* Toth approach: just average */
-	ZSLOOP(0,N1,0,N2) emf[i][j] = 0.25*(F1[i][j][B2] + F1[i][j-1][B2]
+	ZSLOOP(0,N1,0,N2){
+      emf[i][j] = 0.25*(F1[i][j][B2] + F1[i][j-1][B2]
 					  - F2[i][j][B1] - F2[i-1][j][B1]) ;
+      if(i>N1/2-4 && i<N1/2+4){
+        fprintf(stderr,"i=%d Fs=%g %g %g %g : %g\n",i,F1[i][j][B2],F1[i][j-1][B2],F2[i][j][B1],F2[i-1][j][B1],emf[i][j]);
+      }
+    }
 
 	/* rewrite EMFs as fluxes, after Toth */
         ZSLOOP(0,N1,0,N2-1) {
                 F1[i][j][B1] = 0. ;
                 F1[i][j][B2] =  0.5*(emf[i][j] + emf[i][j+1]) ;
+                if(i>N1/2-4 && i<N1/2+4){
+                  fprintf(stderr,"i=%d emf=%g %g F1=%g\n",i,emf[i][j],emf[i][j+1],F1[i][j][B2]);
+                }
         }
         ZSLOOP(0,N1-1,0,N2) {
                 F2[i][j][B1] = -0.5*(emf[i][j] + emf[i+1][j]) ;

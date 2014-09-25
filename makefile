@@ -43,18 +43,18 @@
 #***********************************************************************************/
 #### set USEICC to 0 if you want gcc compiler options, else set to 1 to use icc
 ########  gcc generally used for debugging with -g option so we can use gdb 
-USEICC = 1
+USEICC = 0
 
 
 ifeq ($(USEICC),1)
 CC       = icc
-CCFLAGS  = -O3 -axW -tpp7
+CCFLAGS  = -O3 -lm
 #CCFLAGS  = -O2
 endif
 
 ifeq ($(USEICC),0)
 CC       = gcc
-CCFLAGS  = -g
+CCFLAGS  = -g -lm
 endif
 
 
